@@ -1,11 +1,10 @@
-import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Button from '../components/Button';
 import CircleButton from '../components/CircleButton';
-import { BackIcon, CheckIcon } from '../components/icons';
+import { BackIcon } from '../components/icons';
 import ProductImage from '../components/ProductImage';
 import QuantityControl from '../components/QuantityControl';
 import { CartItem, useCart } from '../context/CartContext';
@@ -38,12 +37,6 @@ function CartRow({ item }: { item: CartItem }) {
 export default function CartScreen() {
     const insets = useSafeAreaInsets();
     const { items, totalCount, totalPrice, clear } = useCart();
-    const [ordered, setOrdered] = useState(false);
-
-    const order = () => {
-        clear();
-        setOrdered(true);
-    };
 
     return (
         <View style={[styles.container, { paddingTop: insets.top + 16 }]}>
@@ -64,16 +57,7 @@ export default function CartScreen() {
                 </View>
             </View>
 
-            {ordered ? (
-                <View style={styles.center}>
-                    <View style={styles.successCircle}>
-                        <CheckIcon />
-                    </View>
-                    <Text style={styles.centerTitle}>Заказ оформлен</Text>
-                    <Text style={styles.centerText}>Спасибо! Курьер скоро свяжется с вами.</Text>
-                    <Button title="К продуктам" onPress={() => router.back()} style={styles.centerButton} />
-                </View>
-            ) : items.length === 0 ? (
+            {items.length === 0 ? (
                 <View style={styles.center}>
                     <Text style={styles.centerTitle}>Корзина пуста</Text>
                     <Text style={styles.centerText}>Добавьте продукты из списка.</Text>
@@ -97,7 +81,7 @@ export default function CartScreen() {
                             </View>
                             <Text style={styles.totalPrice}>{formatTenge(totalPrice)}</Text>
                         </View>
-                        <Button title="Оформить заказ" onPress={order} />
+                        <Button title="Оформить заказ" onPress={() => router.push('/payment')} />
                     </View>
                 </>
             )}
@@ -125,7 +109,6 @@ const styles = StyleSheet.create({
     totalCount: { ...fonts.regular, fontSize: 13, color: colors.gray, marginTop: 2 },
     totalPrice: { ...fonts.bold, fontSize: 26, color: colors.title },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 60 },
-    successCircle: { width: 84, height: 84, borderRadius: 42, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
     centerTitle: { ...fonts.bold, fontSize: 22, color: colors.title },
     centerText: { ...fonts.regular, fontSize: 15, color: colors.grayText, textAlign: 'center', marginTop: 8 },
     centerButton: { alignSelf: 'stretch', marginTop: 28 },
