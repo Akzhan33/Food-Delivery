@@ -7,13 +7,14 @@ import { fetchProducts, Product } from '../api/products';
 import Button from '../components/Button';
 import CategoryChips from '../components/CategoryChips';
 import CircleButton from '../components/CircleButton';
-import FilterSheet, { ALL_CATEGORIES, SortKey } from '../components/FilterSheet';
+import FilterSheet from '../components/FilterSheet';
 import { CartIcon, FilterIcon } from '../components/icons';
 import Logo from '../components/Logo';
 import ProductCard from '../components/ProductCard';
 import PromoBanner from '../components/PromoBanner';
 import SearchField from '../components/SearchField';
 import { useCart } from '../context/CartContext';
+import { ALL_CATEGORIES, applyFilters, DEFAULT_FILTERS, Filters, isDefaultFilters } from '../utils/filters';
 import { colors, fonts } from '../theme';
 
 function getGreeting() {
@@ -24,10 +25,6 @@ function getGreeting() {
   return 'Добрый вечер';
 }
 
-function normalize(text: string) {
-  return text.trim().toLowerCase().replace(/ё/g, 'е');
-}
-
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { totalCount } = useCart();
@@ -36,8 +33,7 @@ export default function HomeScreen() {
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [sort, setSort] = useState<SortKey>('default');
-  const [category, setCategory] = useState(ALL_CATEGORIES);
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
@@ -62,25 +58,9 @@ export default function HomeScreen() {
 
   const categories = useMemo(() => [ALL_CATEGORIES, ...Array.from(new Set(products.map((item) => item.category)))], [products]);
 
-  const visible = useMemo(() => {
-    const query = normalize(search);
-    const filtered = products.filter(
-      (item) =>
-        (category === ALL_CATEGORIES || item.category === category) && (!query || normalize(item.title).includes(query)),
-    );
-    const sorted = [...filtered];
-    if (sort === 'priceAsc') sorted.sort((a, b) => a.price - b.price);
-    if (sort === 'priceDesc') sorted.sort((a, b) => b.price - a.price);
-    if (sort === 'nameAsc') sorted.sort((a, b) => a.title.localeCompare(b.title, 'ru'));
-    return sorted;
-  }, [products, sort, category, search]);
+  const visible = useMemo(() => applyFilters(products, filters, search), [products, filters, search]);
 
-  const filtersActive = sort !== 'default' || category !== ALL_CATEGORIES;
-
-  const resetFilters = () => {
-    setSort('default');
-    setCategory(ALL_CATEGORIES);
-  };
+  const filtersActive = !isDefaultFilters(filters);
 
   const retry = () => {
     setLoading(true);
@@ -125,7 +105,11 @@ export default function HomeScreen() {
           ListHeaderComponent={
             <View>
               <View style={styles.chips}>
-                <CategoryChips categories={categories} selected={category} onSelect={setCategory} />
+                <CategoryChips
+                  categories={categories}
+                  selected={filters.category}
+                  onSelect={(category) => setFilters({ ...filters, category })}
+                />
               </View>
               <PromoBanner />
               <View style={styles.sectionRow}>
@@ -156,11 +140,11 @@ export default function HomeScreen() {
       <FilterSheet
         visible={filterOpen}
         categories={categories}
-        sort={sort}
-        category={category}
-        onChangeSort={setSort}
-        onChangeCategory={setCategory}
-        onReset={resetFilters}
+        value={filters}
+        onApply={(next) => {
+          setFilters(next);
+          setFilterOpen(false);
+        }}
         onClose={() => setFilterOpen(false)}
       />
     </View>
