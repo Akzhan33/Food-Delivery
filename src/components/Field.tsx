@@ -1,16 +1,28 @@
-import React, { ReactNode } from 'react';
+import React, { ComponentRef, ReactNode, Ref } from 'react';
 import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
 import { colors, fonts } from '../theme';
 
-type Props = TextInputProps & { label: string; right?: ReactNode; error?: string };
+export type InputRef = ComponentRef<typeof TextInput>;
 
-export default function Field({ label, right, error, style, ...rest }: Props) {
+type Props = TextInputProps & {
+  label: string;
+  right?: ReactNode;
+  error?: string;
+  labelRight?: ReactNode;
+  inputRef?: Ref<InputRef>;
+};
+
+export default function Field({ label, right, error, labelRight, inputRef, style, ...rest }: Props) {
   return (
     <View style={styles.wrap}>
-      <Text style={styles.label}>{label.toUpperCase()}</Text>
+      <View style={styles.labelRow}>
+        <Text style={styles.label}>{label.toUpperCase()}</Text>
+        {labelRight}
+      </View>
       <View style={[styles.box, error ? styles.boxError : null]}>
         <TextInput
           {...rest}
+          ref={inputRef}
           placeholderTextColor={colors.gray}
           selectionColor={colors.primary}
           style={[styles.input, style]}
@@ -24,7 +36,8 @@ export default function Field({ label, right, error, style, ...rest }: Props) {
 
 const styles = StyleSheet.create({
   wrap: { marginBottom: 16 },
-  label: { ...fonts.regular, fontSize: 12, color: colors.label, marginBottom: 8 },
+  labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  label: { ...fonts.regular, fontSize: 12, color: colors.label },
   box: {
     height: 56,
     borderRadius: 10,
