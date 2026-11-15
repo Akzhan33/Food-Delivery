@@ -12,11 +12,11 @@ import { colors, fonts } from '../theme';
 export default function PaymentSuccessScreen() {
     const insets = useSafeAreaInsets();
     const { total } = useLocalSearchParams<{ total?: string }>();
-    const { clear } = useCart();
+    const { placeOrder } = useCart();
 
     useEffect(() => {
-        clear();
-    }, [clear]);
+        placeOrder();
+    }, [placeOrder]);
 
     return (
         <View style={[styles.container, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 16) }]}>
@@ -28,7 +28,8 @@ export default function PaymentSuccessScreen() {
                 <Text style={styles.text}>Вы успешно оплатили заказ. Приятного аппетита!</Text>
                 {total ? <Text style={styles.total}>Сумма: {formatTenge(Number(total))}</Text> : null}
             </View>
-            <Button title="К продуктам" onPress={() => router.dismissAll()} />
+            <Button title="Отследить заказ" onPress={() => router.push('/track-order')} />
+            <Button title="К продуктам" outline onPress={() => router.dismissAll()} style={styles.second} />
         </View>
     );
 }
@@ -38,5 +39,6 @@ const styles = StyleSheet.create({
     center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     title: { ...fonts.bold, fontSize: 24, color: colors.title, marginTop: 20 },
     text: { ...fonts.regular, fontSize: 15, lineHeight: 22, color: colors.grayText, textAlign: 'center', marginTop: 10, maxWidth: 280 },
+    second: { marginTop: 12 },
     total: { ...fonts.semiBold, fontSize: 16, color: colors.primary, marginTop: 14 },
 });
