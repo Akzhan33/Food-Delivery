@@ -4,8 +4,9 @@ import { chefSvg } from '../illustrations/chef';
 import { deliverySvg } from '../illustrations/delivery';
 import { favoritesSvg } from '../illustrations/favorites';
 import { locationSvg } from '../illustrations/location';
+import { successSvg } from '../illustrations/success';
 
-const map = { favorites: favoritesSvg, chef: chefSvg, delivery: deliverySvg, location: locationSvg } as const;
+const map = { favorites: favoritesSvg, chef: chefSvg, delivery: deliverySvg, location: locationSvg, success: successSvg } as const;
 export type IllustrationName = keyof typeof map;
 
 export default function Illustration({ name, width = 300, height = 280 }: { name: IllustrationName; width?: number; height?: number }) {
