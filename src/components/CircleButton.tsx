@@ -6,18 +6,19 @@ type Props = {
     onPress: () => void;
     label: string;
     dark?: boolean;
+    ghost?: boolean;
     badge?: number;
     dot?: boolean;
     children: ReactNode;
 };
 
-export default function CircleButton({ onPress, label, dark, badge = 0, dot, children }: Props) {
+export default function CircleButton({ onPress, label, dark, ghost, badge = 0, dot, children }: Props) {
     return (
         <Pressable
             accessibilityRole="button"
             accessibilityLabel={label}
             onPress={onPress}
-            style={({ pressed }) => [styles.button, dark ? styles.dark : styles.light, pressed && { opacity: 0.8 }]}
+            style={({ pressed }) => [styles.button, dark ? styles.dark : ghost ? styles.ghost : styles.light, pressed && { opacity: 0.8 }]}
         >
             {children}
             {badge > 0 ? (
@@ -34,6 +35,7 @@ const styles = StyleSheet.create({
     button: { width: 45, height: 45, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },
     light: { backgroundColor: '#ECF0F4' },
     dark: { backgroundColor: colors.title },
+    ghost: { backgroundColor: 'rgba(255,255,255,0.12)' },
     badge: {
         position: 'absolute',
         top: -4,
