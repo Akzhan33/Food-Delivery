@@ -1,9 +1,11 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Button from '../components/Button';
 import CircleButton from '../components/CircleButton';
+import Field, { InputRef } from '../components/Field';
 import { BackIcon } from '../components/icons';
 import ProductImage from '../components/ProductImage';
 import QuantityControl from '../components/QuantityControl';
@@ -17,99 +19,141 @@ function CartRow({ item }: { item: CartItem }) {
 
     return (
         <View style={styles.row}>
-            <ProductImage uri={product.thumbnail} size={64} />
+            <View style={styles.imageTile}>
+                <ProductImage uri={product.thumbnail} size={72} transparent />
+            </View>
             <View style={styles.rowInfo}>
                 <Text style={styles.rowTitle} numberOfLines={2}>
                     {product.title}
                 </Text>
-                <Text style={styles.rowUnit}>
-                    {formatTenge(product.price)} · за 1 {product.unit}
-                </Text>
-                <View style={styles.rowControl}>
-                    <QuantityControl quantity={quantity} onIncrease={() => add(product)} onDecrease={() => decrease(product.id)} />
+                <Text style={styles.rowTotal}>{formatTenge(product.price * quantity)}</Text>
+                <View style={styles.rowBottom}>
+                    <Text style={styles.rowUnit}>
+                        {formatTenge(product.price)} · за 1 {product.unit}
+                    </Text>
+                    <QuantityControl dark quantity={quantity} onIncrease={() => add(product)} onDecrease={() => decrease(product.id)} />
                 </View>
             </View>
-            <Text style={styles.rowTotal}>{formatTenge(product.price * quantity)}</Text>
         </View>
     );
 }
 
 export default function CartScreen() {
     const insets = useSafeAreaInsets();
-    const { items, totalCount, totalPrice, clear } = useCart();
+    const { items, totalCount, totalPrice, address, setAddress, clear } = useCart();
+    const [addressError, setAddressError] = useState('');
+    const addressInput = useRef<InputRef>(null);
+
+    const order = () => {
+        if (!address.trim()) {
+            setAddressError('Введите адрес доставки');
+            return;
+        }
+        router.push('/payment');
+    };
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top + 16 }]}>
-            <StatusBar style="dark" />
-            <View style={styles.header}>
-                <View style={styles.side}>
-                    <CircleButton label="Назад" onPress={() => router.back()}>
-                        <BackIcon />
+        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <View style={[styles.container, { paddingTop: insets.top + 16 }]}>
+                <StatusBar style="light" />
+                <View style={styles.header}>
+                    <CircleButton ghost label="Назад" onPress={() => router.back()}>
+                        <BackIcon color={colors.white} />
                     </CircleButton>
-                </View>
-                <Text style={styles.title}>Корзина</Text>
-                <View style={[styles.side, styles.sideRight]}>
+                    <Text style={styles.title}>Корзина</Text>
                     {items.length > 0 ? (
                         <Pressable accessibilityRole="button" hitSlop={10} onPress={clear}>
-                            <Text style={styles.clear}>Очистить</Text>
+                            <Text style={styles.clear}>ОЧИСТИТЬ</Text>
                         </Pressable>
                     ) : null}
                 </View>
-            </View>
 
-            {items.length === 0 ? (
-                <View style={styles.center}>
-                    <Text style={styles.centerTitle}>Корзина пуста</Text>
-                    <Text style={styles.centerText}>Добавьте продукты из списка.</Text>
-                    <Button title="К продуктам" onPress={() => router.back()} style={styles.centerButton} />
-                </View>
-            ) : (
-                <>
-                    <FlatList
-                        data={items}
-                        keyExtractor={(item) => item.product.id}
-                        renderItem={({ item }) => <CartRow item={item} />}
-                        ItemSeparatorComponent={() => <View style={styles.separator} />}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingBottom: 16 }}
-                    />
-                    <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-                        <View style={styles.totalRow}>
-                            <View>
-                                <Text style={styles.totalLabel}>Итого</Text>
+                {items.length === 0 ? (
+                    <View style={styles.center}>
+                        <Text style={styles.centerTitle}>Корзина пуста</Text>
+                        <Text style={styles.centerText}>Добавьте продукты из списка.</Text>
+                        <Button title="К продуктам" onPress={() => router.back()} style={styles.centerButton} />
+                    </View>
+                ) : (
+                    <>
+                        <FlatList
+                            data={items}
+                            keyExtractor={(item) => item.product.id}
+                            renderItem={({ item }) => <CartRow item={item} />}
+                            ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
+                            showsVerticalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                            contentContainerStyle={styles.list}
+                        />
+                        <View style={[styles.panel, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+                            <Field
+                                label="Адрес доставки"
+                                placeholder="Улица, дом, квартира"
+                                value={address}
+                                onChangeText={(text) => {
+                                    setAddress(text);
+                                    setAddressError('');
+                                }}
+                                error={addressError}
+                                inputRef={addressInput}
+                                labelRight={
+                                    <Pressable accessibilityRole="button" hitSlop={10} onPress={() => addressInput.current?.focus()}>
+                                        <Text style={styles.edit}>ИЗМЕНИТЬ</Text>
+                                    </Pressable>
+                                }
+                            />
+                            <View style={styles.totalRow}>
+                                <View style={styles.totalLeft}>
+                                    <Text style={styles.totalLabel}>ИТОГО:</Text>
+                                    <Text style={styles.totalPrice}>{formatTenge(totalPrice)}</Text>
+                                </View>
                                 <Text style={styles.totalCount}>Товаров: {totalCount}</Text>
                             </View>
-                            <Text style={styles.totalPrice}>{formatTenge(totalPrice)}</Text>
+                            <Button title="Оформить заказ" onPress={order} />
                         </View>
-                        <Button title="Оформить заказ" onPress={() => router.push('/payment')} />
-                    </View>
-                </>
-            )}
-        </View>
+                    </>
+                )}
+            </View>
+        </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: colors.white, paddingHorizontal: 20 },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
-    side: { width: 90, alignItems: 'flex-start' },
-    sideRight: { alignItems: 'flex-end' },
-    title: { ...fonts.bold, fontSize: 22, color: colors.title },
-    clear: { ...fonts.regular, fontSize: 15, color: colors.primary },
-    row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
+    flex: { flex: 1, backgroundColor: colors.dark },
+    container: { flex: 1, backgroundColor: colors.dark },
+    header: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingHorizontal: 20, marginBottom: 20 },
+    title: { ...fonts.bold, fontSize: 22, color: colors.white, flex: 1 },
+    clear: { ...fonts.bold, fontSize: 13, color: colors.primary, letterSpacing: 0.5 },
+    list: { paddingHorizontal: 20, paddingBottom: 20 },
+    row: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+    imageTile: {
+        width: 104,
+        height: 104,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.07)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     rowInfo: { flex: 1 },
-    rowTitle: { ...fonts.semiBold, fontSize: 16, color: colors.title },
-    rowUnit: { ...fonts.regular, fontSize: 13, color: colors.gray, marginTop: 2 },
-    rowControl: { marginTop: 10, alignSelf: 'flex-start' },
-    rowTotal: { ...fonts.bold, fontSize: 16, color: colors.primary },
-    separator: { height: 1, backgroundColor: colors.line },
-    footer: { borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 16, gap: 16 },
-    totalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    totalLabel: { ...fonts.bold, fontSize: 18, color: colors.title },
-    totalCount: { ...fonts.regular, fontSize: 13, color: colors.gray, marginTop: 2 },
+    rowTitle: { ...fonts.regular, fontSize: 16, color: colors.white },
+    rowTotal: { ...fonts.bold, fontSize: 18, color: colors.white, marginTop: 6 },
+    rowBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 },
+    rowUnit: { ...fonts.regular, fontSize: 12, color: '#8A8FA6', flex: 1, marginRight: 8 },
+    panel: {
+        backgroundColor: colors.white,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        paddingHorizontal: 20,
+        paddingTop: 20,
+    },
+    edit: { ...fonts.bold, fontSize: 12, color: colors.primary, letterSpacing: 0.5 },
+    totalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
+    totalLeft: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
+    totalLabel: { ...fonts.regular, fontSize: 13, color: colors.gray, letterSpacing: 0.5 },
     totalPrice: { ...fonts.bold, fontSize: 26, color: colors.title },
-    center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 60 },
-    centerTitle: { ...fonts.bold, fontSize: 22, color: colors.title },
-    centerText: { ...fonts.regular, fontSize: 15, color: colors.grayText, textAlign: 'center', marginTop: 8 },
+    totalCount: { ...fonts.regular, fontSize: 13, color: colors.primary },
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 60, paddingHorizontal: 20 },
+    centerTitle: { ...fonts.bold, fontSize: 22, color: colors.white },
+    centerText: { ...fonts.regular, fontSize: 15, color: '#8A8FA6', textAlign: 'center', marginTop: 8 },
     centerButton: { alignSelf: 'stretch', marginTop: 28 },
 });
