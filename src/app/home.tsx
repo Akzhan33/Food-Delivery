@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchProducts, Product } from '../api/products';
+import Avatar from '../components/Avatar';
 import Button from '../components/Button';
 import CategoryChips from '../components/CategoryChips';
 import CircleButton from '../components/CircleButton';
@@ -14,6 +15,7 @@ import ProductCard from '../components/ProductCard';
 import PromoBanner from '../components/PromoBanner';
 import SearchField from '../components/SearchField';
 import { useCart } from '../context/CartContext';
+import { useUser } from '../context/UserContext';
 import { ALL_CATEGORIES, applyFilters, DEFAULT_FILTERS, Filters, isDefaultFilters } from '../utils/filters';
 import { colors, fonts } from '../theme';
 
@@ -28,6 +30,8 @@ function getGreeting() {
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { totalCount } = useCart();
+  const { user, signOut } = useUser();
+  const firstName = user?.name.split(' ')[0] ?? '';
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -62,6 +66,11 @@ export default function HomeScreen() {
 
   const filtersActive = !isDefaultFilters(filters);
 
+  const logout = () => {
+    signOut();
+    router.replace('/login');
+  };
+
   const retry = () => {
     setLoading(true);
     setAttempt((n) => n + 1);
@@ -80,9 +89,15 @@ export default function HomeScreen() {
         </CircleButton>
       </View>
 
-      <Text style={styles.greeting}>
-        Привет! <Text style={styles.greetingBold}>{getGreeting()}!</Text>
-      </Text>
+      <View style={styles.greetingRow}>
+        <Text style={styles.greeting}>
+          {firstName ? `Привет, ${firstName}! ` : 'Привет! '}
+          <Text style={styles.greetingBold}>{getGreeting()}!</Text>
+        </Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Аккаунт" onPress={() => router.push('/profile')}>
+          <Avatar name={user?.name ?? ''} size={40} />
+        </Pressable>
+      </View>
       <SearchField value={search} onChangeText={setSearch} />
 
       {loading ? (
@@ -127,7 +142,7 @@ export default function HomeScreen() {
             </View>
           }
           ListFooterComponent={
-            <Pressable accessibilityRole="button" hitSlop={10} onPress={() => router.replace('/login')} style={styles.logout}>
+            <Pressable accessibilityRole="button" hitSlop={10} onPress={logout} style={styles.logout}>
               <Text style={styles.logoutText}>Выйти из аккаунта</Text>
             </Pressable>
           }
@@ -154,7 +169,8 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white, paddingHorizontal: 20 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
-  greeting: { ...fonts.regular, fontSize: 16, color: colors.grayText, marginBottom: 14 },
+  greetingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 14 },
+  greeting: { ...fonts.regular, fontSize: 16, color: colors.grayText, flex: 1 },
   greetingBold: { ...fonts.bold, color: colors.title },
   list: { marginTop: 8 },
   chips: { marginHorizontal: -4, marginBottom: 14 },
