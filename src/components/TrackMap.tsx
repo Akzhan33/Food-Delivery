@@ -26,7 +26,7 @@ export default function TrackMap() {
             <Circle cx="310" cy="690" r="38" stroke="#FFFFFF" strokeWidth={8} fill="none" />
 
             <Path
-                d="M95 540 C118 520 124 500 118 470 C112 440 122 410 150 395 C200 372 250 345 295 300 L300 235"
+                d="M95 440 C120 420 126 400 120 378 C114 358 128 345 155 337 C205 322 255 312 295 285 L300 235"
                 stroke="#FF7622"
                 strokeWidth={4}
                 strokeLinecap="round"
@@ -34,10 +34,10 @@ export default function TrackMap() {
                 fill="none"
             />
 
-            <Circle cx="95" cy="540" r="34" fill="#E5484D" opacity={0.18} />
-            <Circle cx="95" cy="540" r="24" fill="#E5484D" />
-            <Path d="M95 528 C89 528 85 532 85 537 C85 544 95 552 95 552 C95 552 105 544 105 537 C105 532 101 528 95 528 Z" stroke="#FFFFFF" strokeWidth={2} fill="none" />
-            <Circle cx="95" cy="537" r="3" stroke="#FFFFFF" strokeWidth={2} fill="none" />
+            <Circle cx="95" cy="440" r="34" fill="#E5484D" opacity={0.18} />
+            <Circle cx="95" cy="440" r="24" fill="#E5484D" />
+            <Path d="M95 428 C89 428 85 432 85 437 C85 444 95 452 95 452 C95 452 105 444 105 437 C105 432 101 428 95 428 Z" stroke="#FFFFFF" strokeWidth={2} fill="none" />
+            <Circle cx="95" cy="437" r="3" stroke="#FFFFFF" strokeWidth={2} fill="none" />
 
             <Circle cx="300" cy="215" r="42" fill="#FDC22E" opacity={0.16} />
             <Circle cx="300" cy="215" r="30" fill="#FDC22E" opacity={0.32} />

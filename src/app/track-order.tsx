@@ -1,13 +1,15 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Avatar from '../components/Avatar';
 import Button from '../components/Button';
 import CircleButton from '../components/CircleButton';
-import { BackIcon } from '../components/icons';
+import { BackIcon, ChatIcon } from '../components/icons';
 import ProductImage from '../components/ProductImage';
 import TrackMap from '../components/TrackMap';
 import { useCart } from '../context/CartContext';
+import { COURIER_NAME } from '../data/courier';
 import { formatOrderDate } from '../utils/format';
 import { colors, fonts } from '../theme';
 
@@ -67,6 +69,16 @@ export default function TrackOrderScreen() {
                 <Text style={styles.address} numberOfLines={2}>
                     Адрес: {lastOrder.address}
                 </Text>
+                <View style={styles.courierRow}>
+                    <Avatar name={COURIER_NAME} size={40} tone="dark" />
+                    <View style={styles.courierInfo}>
+                        <Text style={styles.courierName}>{COURIER_NAME}</Text>
+                        <Text style={styles.courierRole}>Ваш курьер</Text>
+                    </View>
+                    <Pressable accessibilityRole="button" accessibilityLabel="Написать курьеру" onPress={() => router.push('/chat')} style={styles.chatButton}>
+                        <ChatIcon color={colors.white} size={18} />
+                    </Pressable>
+                </View>
             </View>
         </View>
     );
@@ -101,6 +113,11 @@ const styles = StyleSheet.create({
     status: { ...fonts.bold, fontSize: 15, color: colors.primary },
     eta: { ...fonts.semiBold, fontSize: 15, color: colors.title },
     address: { ...fonts.regular, fontSize: 13, color: colors.grayText, marginTop: 8 },
+    courierRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: colors.line },
+    courierInfo: { flex: 1 },
+    courierName: { ...fonts.semiBold, fontSize: 15, color: colors.title },
+    courierRole: { ...fonts.regular, fontSize: 12, color: colors.gray, marginTop: 2 },
+    chatButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
     empty: { flex: 1, backgroundColor: colors.white, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center' },
     emptyTitle: { ...fonts.bold, fontSize: 22, color: colors.title },
     emptyText: { ...fonts.regular, fontSize: 15, color: colors.grayText, textAlign: 'center', marginTop: 8 },
