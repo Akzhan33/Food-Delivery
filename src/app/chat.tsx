@@ -65,7 +65,7 @@ function Bubble({ message, userName }: { message: Message; userName: string }) {
 export default function ChatScreen() {
     const insets = useSafeAreaInsets();
     const { user } = useUser();
-    const { lastOrder } = useCart();
+    const { activeOrder } = useCart();
     const [messages, setMessages] = useState<Message[]>(() => [
         createMessage(1, 'courier', 'Здравствуйте! Я забрал ваш заказ и уже еду к вам.'),
     ]);
@@ -96,7 +96,7 @@ export default function ChatScreen() {
         timers.current.push(timer);
     };
 
-    if (!lastOrder) {
+    if (!activeOrder) {
         return (
             <View style={[styles.empty, { paddingTop: insets.top + 16 }]}>
                 <StatusBar style="dark" />
