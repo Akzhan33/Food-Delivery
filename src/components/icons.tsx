@@ -1,6 +1,5 @@
 import React from 'react';
-import Svg, { Circle, Path } from 'react-native-svg';
-
+import Svg, { Circle, Path, Rect } from 'react-native-svg';
 type IconProps = { color?: string; size?: number };
 
 const base = { fill: 'none' as const, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
@@ -117,6 +116,47 @@ export function LogoutIcon({ color = '#181C2E', size = 20 }: IconProps) {
     return (
         <Svg width={size} height={size} viewBox="0 0 24 24">
             <Path {...base} d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M16 8l4 4-4 4M20 12H9" stroke={color} strokeWidth={2} />
+        </Svg>
+    );
+}
+export function HomeIcon({ color = '#181C2E', size = 20 }: IconProps) {
+    return (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Path {...base} d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z" stroke={color} strokeWidth={2} />
+        </Svg>
+    );
+}
+
+export function WorkIcon({ color = '#181C2E', size = 20 }: IconProps) {
+    return (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Rect x="3" y="7" width="18" height="13" rx="2" stroke={color} strokeWidth={2} fill="none" />
+            <Path {...base} d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18" stroke={color} strokeWidth={2} />
+        </Svg>
+    );
+}
+
+export function PinIcon({ color = '#181C2E', size = 20 }: IconProps) {
+    return (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Path {...base} d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" stroke={color} strokeWidth={2} />
+            <Circle cx="12" cy="10" r="2.5" stroke={color} strokeWidth={2} fill="none" />
+        </Svg>
+    );
+}
+
+export function EditIcon({ color = '#181C2E', size = 20 }: IconProps) {
+    return (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Path {...base} d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17zM14 7l3 3" stroke={color} strokeWidth={2} />
+        </Svg>
+    );
+}
+
+export function TrashIcon({ color = '#181C2E', size = 20 }: IconProps) {
+    return (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+            <Path {...base} d="M4 7h16M10 11v6M14 11v6M6 7l1 12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-12M9 7V4h6v3" stroke={color} strokeWidth={2} />
         </Svg>
     );
 }
