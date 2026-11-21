@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,7 +9,9 @@ import Field, { InputRef } from '../components/Field';
 import { BackIcon } from '../components/icons';
 import ProductImage from '../components/ProductImage';
 import QuantityControl from '../components/QuantityControl';
+import { labelNames, useAddresses } from '../context/AddressContext';
 import { CartItem, useCart } from '../context/CartContext';
+import { formatAddress } from '../utils/address';
 import { formatTenge } from '../utils/format';
 import { colors, fonts } from '../theme';
 
@@ -41,6 +43,7 @@ function CartRow({ item }: { item: CartItem }) {
 export default function CartScreen() {
     const insets = useSafeAreaInsets();
     const { items, totalCount, totalPrice, address, setAddress, clear } = useCart();
+    const { addresses } = useAddresses();
     const [addressError, setAddressError] = useState('');
     const addressInput = useRef<InputRef>(null);
 
@@ -86,6 +89,30 @@ export default function CartScreen() {
                             contentContainerStyle={styles.list}
                         />
                         <View style={[styles.panel, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+                            {addresses.length > 0 ? (
+                                <ScrollView
+                                    horizontal
+                                    showsHorizontalScrollIndicator={false}
+                                    keyboardShouldPersistTaps="handled"
+                                    style={styles.saved}
+                                    contentContainerStyle={styles.savedRow}
+                                >
+                                    {addresses.map((item) => (
+                                        <Pressable
+                                            key={item.id}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={`Адрес: ${labelNames[item.label]}`}
+                                            onPress={() => {
+                                                setAddress(formatAddress(item));
+                                                setAddressError('');
+                                            }}
+                                            style={styles.savedChip}
+                                        >
+                                            <Text style={styles.savedChipText}>{labelNames[item.label]}</Text>
+                                        </Pressable>
+                                    ))}
+                                </ScrollView>
+                            ) : null}
                             <Field
                                 label="Адрес доставки"
                                 placeholder="Улица, дом, квартира"
@@ -146,6 +173,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 20,
     },
+    saved: { flexGrow: 0, marginBottom: 14 },
+    savedRow: { gap: 8 },
+    savedChip: { paddingHorizontal: 16, height: 36, borderRadius: 18, backgroundColor: '#FFF1E6', alignItems: 'center', justifyContent: 'center' },
+    savedChipText: { ...fonts.semiBold, fontSize: 13, color: colors.primary },
     edit: { ...fonts.bold, fontSize: 12, color: colors.primary, letterSpacing: 0.5 },
     totalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
     totalLeft: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
