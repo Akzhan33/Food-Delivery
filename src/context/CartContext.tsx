@@ -6,12 +6,15 @@ export type CartItem = {
     quantity: number;
 };
 
+export type OrderStatus = 'ongoing' | 'completed' | 'canceled';
+
 export type Order = {
     id: string;
     items: CartItem[];
     total: number;
     address: string;
     createdAt: number;
+    status: OrderStatus;
 };
 
 type CartValue = {
@@ -19,13 +22,18 @@ type CartValue = {
     totalCount: number;
     totalPrice: number;
     address: string;
+    orders: Order[];
     lastOrder: Order | null;
+    activeOrder: Order | null;
     getQuantity: (id: string) => number;
     add: (product: Product) => void;
     decrease: (id: string) => void;
     clear: () => void;
     setAddress: (value: string) => void;
     placeOrder: () => void;
+    cancelOrder: (id: string) => void;
+    completeOrder: (id: string) => void;
+    reorder: (order: Order) => void;
 };
 
 const CartContext = createContext<CartValue | null>(null);
@@ -33,9 +41,10 @@ const CartContext = createContext<CartValue | null>(null);
 export function CartProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<CartItem[]>([]);
     const [address, setAddressState] = useState('');
-    const [lastOrder, setLastOrder] = useState<Order | null>(null);
+    const [orders, setOrders] = useState<Order[]>([]);
     const itemsRef = useRef<CartItem[]>([]);
     const addressRef = useRef('');
+    const orderCounter = useRef(1000);
 
     useEffect(() => {
         itemsRef.current = items;
@@ -73,18 +82,67 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const current = itemsRef.current;
         if (current.length === 0) return;
         const total = current.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-        const now = Date.now();
+        const order: Order = {
+            id: String(orderCounter.current++),
+            items: current,
+            total,
+            address: addressRef.current,
+            createdAt: Date.now(),
+            status: 'ongoing',
+        };
         itemsRef.current = [];
-        setLastOrder({ id: String(now).slice(-5), items: current, total, address: addressRef.current, createdAt: now });
+        setOrders((list) => [order, ...list]);
         setItems([]);
+    }, []);
+
+    const changeStatus = useCallback((id: string, status: OrderStatus) => {
+        setOrders((list) => list.map((order) => (order.id === id && order.status === 'ongoing' ? { ...order, status } : order)));
+    }, []);
+
+    const cancelOrder = useCallback((id: string) => changeStatus(id, 'canceled'), [changeStatus]);
+
+    const completeOrder = useCallback((id: string) => changeStatus(id, 'completed'), [changeStatus]);
+
+    const reorder = useCallback((order: Order) => {
+        setItems((current) => {
+            const next = [...current];
+            for (const item of order.items) {
+                const index = next.findIndex((entry) => entry.product.id === item.product.id);
+                if (index >= 0) {
+                    next[index] = { ...next[index], quantity: next[index].quantity + item.quantity };
+                } else {
+                    next.push({ ...item });
+                }
+            }
+            return next;
+        });
     }, []);
 
     const value = useMemo(() => {
         const totalCount = items.reduce((sum, item) => sum + item.quantity, 0);
         const totalPrice = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
         const getQuantity = (id: string) => items.find((item) => item.product.id === id)?.quantity ?? 0;
-        return { items, totalCount, totalPrice, address, lastOrder, getQuantity, add, decrease, clear, setAddress, placeOrder };
-    }, [items, address, lastOrder, add, decrease, clear, setAddress, placeOrder]);
+        const lastOrder = orders[0] ?? null;
+        const activeOrder = orders.find((order) => order.status === 'ongoing') ?? null;
+        return {
+            items,
+            totalCount,
+            totalPrice,
+            address,
+            orders,
+            lastOrder,
+            activeOrder,
+            getQuantity,
+            add,
+            decrease,
+            clear,
+            setAddress,
+            placeOrder,
+            cancelOrder,
+            completeOrder,
+            reorder,
+        };
+    }, [items, address, orders, add, decrease, clear, setAddress, placeOrder, cancelOrder, completeOrder, reorder]);
 
     return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
