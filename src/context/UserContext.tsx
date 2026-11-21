@@ -4,6 +4,8 @@ import { nameFromEmail } from '../utils/user';
 export type User = {
     name: string;
     email: string;
+    phone: string;
+    bio: string;
 };
 
 type UserValue = {
@@ -11,6 +13,7 @@ type UserValue = {
     signIn: (email: string) => void;
     signUp: (name: string, email: string) => void;
     signOut: () => void;
+    updateUser: (patch: Partial<User>) => void;
 };
 
 const UserContext = createContext<UserValue | null>(null);
@@ -19,19 +22,23 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
 
     const signIn = useCallback((email: string) => {
-        setUser((current) => ({
-            name: current && current.email === email ? current.name : nameFromEmail(email),
-            email,
-        }));
+        setUser((current) => {
+            if (current && current.email === email) return current;
+            return { name: nameFromEmail(email), email, phone: '', bio: '' };
+        });
     }, []);
 
     const signUp = useCallback((name: string, email: string) => {
-        setUser({ name, email });
+        setUser({ name, email, phone: '', bio: '' });
     }, []);
 
     const signOut = useCallback(() => setUser(null), []);
 
-    const value = useMemo(() => ({ user, signIn, signUp, signOut }), [user, signIn, signUp, signOut]);
+    const updateUser = useCallback((patch: Partial<User>) => {
+        setUser((current) => (current ? { ...current, ...patch } : current));
+    }, []);
+
+    const value = useMemo(() => ({ user, signIn, signUp, signOut, updateUser }), [user, signIn, signUp, signOut, updateUser]);
 
     return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
